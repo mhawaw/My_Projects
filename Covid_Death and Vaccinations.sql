@@ -63,6 +63,32 @@ where Dea.continent <> 'NULL'
 select *, round((Rolling_People_Vaccinated/Population)*100,3) PercVaccinated
 from PopvsVac
 
+--CREATE TEMP TABLE
+
+Drop table if exists #PercVaccinated
+
+Create table #PercVaccinated
+(
+Continent nvarchar(255),
+Location nvarchar(255),
+Date datetime,
+Population numeric,
+New_Vaccinations numeric,
+Rolling_People_Vaccinated numeric
+)
+
+Insert into #PercVaccinated
+Select Dea.continent, Dea.location, Dea.date, Dea.population, Vac.new_vaccinations, sum(convert(int, Vac.new_vaccinations)) over (partition by Dea.Location order by Dea.location, Dea.date) Rolling_People_Vaccinated
+from [My Projects]..CovidDeaths Dea
+join [My Projects]..CovidVaccinations Vac
+	on Dea.location=Vac.location
+	and Dea.date=Vac.date
+where Dea.continent <> 'NULL'
+--order by 2,3
+
+select *, round((Rolling_People_Vaccinated/Population)*100,3) PercVaccinated
+from #PercVaccinated
+
 --Create View for later Visualization
 
 Create view PercVaccinated as
